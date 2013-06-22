@@ -116,7 +116,7 @@ GLfloat gCubeVertexData[216] =
   [self setupGL];
   
   NSBundle *mainBundle = [NSBundle mainBundle];
-  NSString *myFile = [mainBundle pathForResource: @"icosahedron" ofType: @"obj"];
+  NSString *myFile = [mainBundle pathForResource: @"spring_stri" ofType: @"obj"];
   NSLog(@"Main bundle path: %@", mainBundle);
   NSLog(@"myFile path: %@", myFile);
   lap::ObjModelPtr m = lap::obj_model(myFile.UTF8String);

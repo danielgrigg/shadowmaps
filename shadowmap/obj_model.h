@@ -16,6 +16,12 @@
 
 namespace lap {
 
+  struct Face {
+    int3 vertex[3];
+  };
+  
+  std::ostream& operator<<(std::ostream& os, const Face& rhs);
+  
 class ObjModel
 {
 public:
@@ -24,6 +30,8 @@ public:
   std::vector<float3> _positions;
   std::vector<float2> _uvs;
   std::vector<float3> _normals;
+  
+  std::vector<Face> _faces;
 };
     
   typedef std::unique_ptr<ObjModel> ObjModelPtr;

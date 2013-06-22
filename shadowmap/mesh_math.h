@@ -144,9 +144,9 @@ namespace lap
       return make_range<I>(&dest[0], dest.size());
     }
     
-    typedef vec<uint32_t,3> uint3;
-    typedef vec<uint32_t,2> uint2;
-    typedef vec<uint32_t,1> uint1;
+    typedef vec<int,3> int3;
+    typedef vec<int,2> int2;
+    typedef vec<int,1> int1;
     typedef vec<float,3> float3;
     typedef vec<float,2> float2;
     typedef vec<float,1> float1;
