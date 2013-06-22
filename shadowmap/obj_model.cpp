@@ -76,6 +76,15 @@ namespace lap {
     return m;
   }
   
+  ObjModelPtr& parse_uv(ObjModelPtr& m, sregex_token_iterator iter) {
+    m->_uvs.push_back(parse_vec<2>(++iter));
+    return m;
+  }
+  ObjModelPtr& parse_normal(ObjModelPtr& m, sregex_token_iterator iter) {
+    m->_normals.push_back(parse_vec<3>(++iter));
+    return m;
+  }
+  
   void parse_line(const ParserMap& parsers, ObjModelPtr& model, const string& line) {
     auto word_iter = std::sregex_token_iterator(line.begin(), line.end(), ws_re, -1);
     if (word_iter == std::sregex_token_iterator() ) return;
@@ -94,10 +103,11 @@ namespace lap {
   
   ObjModelPtr obj_model(const std::string path) {
     
-    std::map<string, std::function<ObjModelPtr&(ObjModelPtr&, std::sregex_token_iterator args)>> parser_fns;
-    
-    parser_fns[COMMENT] = identity_parse;
-    parser_fns[POSITION] = parse_position;
+    const std::map<string, std::function<ObjModelPtr&(ObjModelPtr&, std::sregex_token_iterator args)>> parser_fns =
+    {{ COMMENT, identity_parse },
+      { POSITION, parse_position},
+      { NORMAL, parse_normal },
+      { UV, parse_uv }};
     
     std::fstream fs (path.c_str(), std::fstream::in);
     if (!fs.is_open()) return ObjModelPtr();
