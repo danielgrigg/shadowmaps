@@ -98,7 +98,7 @@ namespace lap {
     
     parser_fns[COMMENT] = identity_parse;
     parser_fns[POSITION] = parse_position;
-    x
+    
     std::fstream fs (path.c_str(), std::fstream::in);
     if (!fs.is_open()) return ObjModelPtr();
     
