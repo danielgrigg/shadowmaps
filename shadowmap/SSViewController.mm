@@ -16,6 +16,7 @@ enum
 {
   UNIFORM_MODELVIEWPROJECTION_MATRIX,
   UNIFORM_NORMAL_MATRIX,
+  UNIFORM_COLOR_MAP,
   NUM_UNIFORMS
 };
 GLint uniforms[NUM_UNIFORMS];
@@ -27,53 +28,168 @@ enum
   ATTRIB_NORMAL,
   NUM_ATTRIBUTES
 };
+using lap::float3;
+using lap::float2;
 
-GLfloat gCubeVertexData[216] =
-{
-  // Data layout for each line below is:
-  // positionX, positionY, positionZ,     normalX, normalY, normalZ,
-  0.5f, -0.5f, -0.5f,        1.0f, 0.0f, 0.0f,
-  0.5f, 0.5f, -0.5f,         1.0f, 0.0f, 0.0f,
-  0.5f, -0.5f, 0.5f,         1.0f, 0.0f, 0.0f,
-  0.5f, -0.5f, 0.5f,         1.0f, 0.0f, 0.0f,
-  0.5f, 0.5f, -0.5f,          1.0f, 0.0f, 0.0f,
-  0.5f, 0.5f, 0.5f,         1.0f, 0.0f, 0.0f,
-  
-  0.5f, 0.5f, -0.5f,         0.0f, 1.0f, 0.0f,
-  -0.5f, 0.5f, -0.5f,        0.0f, 1.0f, 0.0f,
-  0.5f, 0.5f, 0.5f,          0.0f, 1.0f, 0.0f,
-  0.5f, 0.5f, 0.5f,          0.0f, 1.0f, 0.0f,
-  -0.5f, 0.5f, -0.5f,        0.0f, 1.0f, 0.0f,
-  -0.5f, 0.5f, 0.5f,         0.0f, 1.0f, 0.0f,
-  
-  -0.5f, 0.5f, -0.5f,        -1.0f, 0.0f, 0.0f,
-  -0.5f, -0.5f, -0.5f,       -1.0f, 0.0f, 0.0f,
-  -0.5f, 0.5f, 0.5f,         -1.0f, 0.0f, 0.0f,
-  -0.5f, 0.5f, 0.5f,         -1.0f, 0.0f, 0.0f,
-  -0.5f, -0.5f, -0.5f,       -1.0f, 0.0f, 0.0f,
-  -0.5f, -0.5f, 0.5f,        -1.0f, 0.0f, 0.0f,
-  
-  -0.5f, -0.5f, -0.5f,       0.0f, -1.0f, 0.0f,
-  0.5f, -0.5f, -0.5f,        0.0f, -1.0f, 0.0f,
-  -0.5f, -0.5f, 0.5f,        0.0f, -1.0f, 0.0f,
-  -0.5f, -0.5f, 0.5f,        0.0f, -1.0f, 0.0f,
-  0.5f, -0.5f, -0.5f,        0.0f, -1.0f, 0.0f,
-  0.5f, -0.5f, 0.5f,         0.0f, -1.0f, 0.0f,
-  
-  0.5f, 0.5f, 0.5f,          0.0f, 0.0f, 1.0f,
-  -0.5f, 0.5f, 0.5f,         0.0f, 0.0f, 1.0f,
-  0.5f, -0.5f, 0.5f,         0.0f, 0.0f, 1.0f,
-  0.5f, -0.5f, 0.5f,         0.0f, 0.0f, 1.0f,
-  -0.5f, 0.5f, 0.5f,         0.0f, 0.0f, 1.0f,
-  -0.5f, -0.5f, 0.5f,        0.0f, 0.0f, 1.0f,
-  
-  0.5f, -0.5f, -0.5f,        0.0f, 0.0f, -1.0f,
-  -0.5f, -0.5f, -0.5f,       0.0f, 0.0f, -1.0f,
-  0.5f, 0.5f, -0.5f,         0.0f, 0.0f, -1.0f,
-  0.5f, 0.5f, -0.5f,         0.0f, 0.0f, -1.0f,
-  -0.5f, -0.5f, -0.5f,       0.0f, 0.0f, -1.0f,
-  -0.5f, 0.5f, -0.5f,        0.0f, 0.0f, -1.0f
+#if 0
+struct PositionNormal {
+  float3 _position;
+  float3 _normal;
 };
+std::ostream& operator<<(std::ostream& os, const PositionNormal& rhs) {
+  os << "{:position " << rhs._position
+  << " :normal " << rhs._normal << "}";
+  return os;
+}
+#endif
+struct PositionUVNormal {
+  float3 _position;
+  float2 _uv;
+  float3 _normal;
+};
+
+
+std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
+  os << "{:position " << rhs._position << " :uv " << rhs._uv
+  << " :normal " << rhs._normal << "}";
+  return os;
+}
+
+
+//struct TriangleMesh {
+//  std::vector<PositionNormal> _vertices;
+//};
+struct TriangleMesh {
+    std::vector<PositionUVNormal> _vertices;
+  };
+
+typedef std::unique_ptr<TriangleMesh> TriangleMeshPtr;
+TriangleMeshPtr make_triangle_mesh(const lap::ObjModelPtr& model) {
+  
+  auto mesh = TriangleMeshPtr(new TriangleMesh());
+  mesh->_vertices.reserve(3 * model->_faces.size());
+  for (int i =0; i < model->_faces.size(); ++i)  {
+    for (int j = 0; j < 3; ++j) {
+      auto& indices = model->_faces[i].vertex[j];
+      
+      if (model->_uvs.empty()) {
+      //mesh->_vertices.push_back({ model->_positions[indices[0]], model->_normals[indices[2]]});
+      }
+      else {
+        mesh->_vertices.push_back({
+        model->_positions[indices[0]],
+        model->_uvs[indices[1]],
+        model->_normals[indices[2]]});
+      }
+    }
+
+  }
+  return mesh;
+}
+
+TriangleMeshPtr gMesh;
+
+void load_mesh() {
+  NSBundle *mainBundle = [NSBundle mainBundle];
+  NSString *myFile = [mainBundle pathForResource: @"quad_pnt" ofType: @"obj"];
+  if (myFile == nil) return;
+  
+  NSLog(@"Main bundle path: %@", mainBundle);
+  NSLog(@"myFile path: %@", myFile);
+  auto model = lap::obj_model(myFile.UTF8String);
+  
+  std::cout << "#positions " << model->_positions.size() << "\n";
+  std::cout << "#faces " << model->_faces.size() << "\n";
+  
+  gMesh = make_triangle_mesh(model);
+}
+
+GLuint g_fb_light;
+GLuint g_fb_light_texture;
+
+void light_framebuffer(int width, int height) {
+
+  glGetError();
+  
+  GLint default_framebuffer;
+  GLint default_renderbuffer;
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &default_framebuffer);
+  glGetIntegerv(GL_RENDERBUFFER_BINDING, &default_renderbuffer);
+
+  glGenFramebuffers(1, &g_fb_light);
+  glBindFramebuffer(GL_FRAMEBUFFER, g_fb_light);
+  
+  // create the texture
+  glGenTextures(1, &g_fb_light_texture);
+  glBindTexture(GL_TEXTURE_2D, g_fb_light_texture);
+  
+  GLint min_filter, mag_filter, wrap_s, wrap_t;
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &min_filter);
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &mag_filter);
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrap_s);
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrap_t);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_fb_light_texture, 0);
+  
+  GLuint depthRenderbuffer;
+  glGenRenderbuffers(1, &depthRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+  
+  GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
+  if(status != GL_FRAMEBUFFER_COMPLETE) {
+    NSLog(@"failed to make complete framebuffer object %x", status);
+  }
+  assert(glGetError() == GL_NO_ERROR);
+  
+//  glBindFramebuffer(GL_FRAMEBUFFER, g_fb_light);
+  glUseProgram(0);
+  glBindVertexArrayOES(0);
+  glClearColor(1.0f, 0.5f, 0.0f, 0.0f);
+  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glBindFramebuffer(GL_FRAMEBUFFER, default_framebuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, default_renderbuffer);
+  
+  glBindTexture(GL_TEXTURE_2D, g_fb_light_texture);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  assert(glGetError() == GL_NO_ERROR);
+}
+
+GLuint make_static_test_texture() {
+  glGetError();
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  
+  uint8_t texture_data[] = { 0, 255, 0, 255,
+    255, 255, 0, 255,
+    255, 255, 0, 255,
+    0, 255, 0, 255 };
+  
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0,
+               GL_RGBA, GL_UNSIGNED_BYTE, &texture_data[0]);
+//  glGenerateMipmap(GL_TEXTURE_2D); 
+
+  assert(glGetError() == GL_NO_ERROR);
+  return texture;
+}
+
+GLuint g_static_texture;
 
 @interface SSViewController () {
   GLuint _program;
@@ -86,7 +202,6 @@ GLfloat gCubeVertexData[216] =
   GLuint _vertexBuffer;
 }
 @property (strong, nonatomic) EAGLContext *context;
-@property (strong, nonatomic) GLKBaseEffect *effect;
 
 - (void)setupGL;
 - (void)tearDownGL;
@@ -115,11 +230,6 @@ GLfloat gCubeVertexData[216] =
   
   [self setupGL];
   
-  NSBundle *mainBundle = [NSBundle mainBundle];
-  NSString *myFile = [mainBundle pathForResource: @"spring_stri" ofType: @"obj"];
-  NSLog(@"Main bundle path: %@", mainBundle);
-  NSLog(@"myFile path: %@", myFile);
-  lap::ObjModelPtr m = lap::obj_model(myFile.UTF8String);
 }
 
 - (void)dealloc
@@ -155,25 +265,37 @@ GLfloat gCubeVertexData[216] =
   
   [self loadShaders];
   
-  self.effect = [[GLKBaseEffect alloc] init];
-  self.effect.light0.enabled = GL_TRUE;
-  self.effect.light0.diffuseColor = GLKVector4Make(1.0f, 0.4f, 0.4f, 1.0f);
-  
   glEnable(GL_DEPTH_TEST);
+  
+  load_mesh();
   
   glGenVertexArraysOES(1, &_vertexArray);
   glBindVertexArrayOES(_vertexArray);
   
   glGenBuffers(1, &_vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(gCubeVertexData), gCubeVertexData, GL_STATIC_DRAW);
-  
+    
+  glBufferData(GL_ARRAY_BUFFER, gMesh->_vertices.size() * sizeof(PositionUVNormal),
+               &gMesh->_vertices[0], GL_STATIC_DRAW);
   glEnableVertexAttribArray(GLKVertexAttribPosition);
-  glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, 24, BUFFER_OFFSET(0));
+  glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE,
+                        sizeof(PositionUVNormal), BUFFER_OFFSET(0));
   glEnableVertexAttribArray(GLKVertexAttribNormal);
-  glVertexAttribPointer(GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, 24, BUFFER_OFFSET(12));
-  
+  glVertexAttribPointer(GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE,
+                        sizeof(PositionUVNormal),  BUFFER_OFFSET(sizeof(float3) + sizeof(float2)));
+
+  glEnableVertexAttribArray(GLKVertexAttribTexCoord0);
+  glVertexAttribPointer(GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE,
+                        sizeof(PositionUVNormal), BUFFER_OFFSET(sizeof(float3)));
+
   glBindVertexArrayOES(0);
+  
+  g_static_texture = make_static_test_texture();
+  
+  light_framebuffer(256, 256);
+  
+  assert(glGetError() == GL_NO_ERROR);
+
 }
 
 - (void)tearDownGL
@@ -182,8 +304,6 @@ GLfloat gCubeVertexData[216] =
   
   glDeleteBuffers(1, &_vertexBuffer);
   glDeleteVertexArraysOES(1, &_vertexArray);
-  
-  self.effect = nil;
   
   if (_program) {
     glDeleteProgram(_program);
@@ -195,26 +315,20 @@ GLfloat gCubeVertexData[216] =
 
 - (void)update
 {
+ 
+  
   float aspect = fabsf(self.view.bounds.size.width / self.view.bounds.size.height);
-  GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0f), aspect, 0.1f, 100.0f);
+  GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 1.0f, 1000.0f);
   
-  self.effect.transform.projectionMatrix = projectionMatrix;
+  auto view_matrix = GLKMatrix4MakeLookAt(5.0f, 5, 5, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
   
-  GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -4.0f);
-  baseModelViewMatrix = GLKMatrix4Rotate(baseModelViewMatrix, _rotation, 0.0f, 1.0f, 0.0f);
+//    auto view_matrix = GLKMatrix4MakeLookAt(1.0f, 2, 6, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
   
-  // Compute the model view matrix for the object rendered with GLKit
-  GLKMatrix4 modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -1.5f);
-  modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
-  modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix);
-  
-  self.effect.transform.modelviewMatrix = modelViewMatrix;
-  
-  // Compute the model view matrix for the object rendered with ES2
-  modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, 1.5f);
-  modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
-  modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix);
-  
+  GLKMatrix4 modelMatrix = GLKMatrix4MakeScale(4.0, 4.0, 4.0);
+  modelMatrix = GLKMatrix4Rotate(modelMatrix, GLKMathDegreesToRadians(-90.0), 1.0f, 0.0f, 0.0f);
+  modelMatrix = GLKMatrix4Translate(modelMatrix, -0.5, -0.5, 0.0);
+  GLKMatrix4 modelViewMatrix = GLKMatrix4Multiply(view_matrix, modelMatrix);
+
   _normalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), NULL);
   
   _modelViewProjectionMatrix = GLKMatrix4Multiply(projectionMatrix, modelViewMatrix);
@@ -224,29 +338,49 @@ GLfloat gCubeVertexData[216] =
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+  glGetError();
+  /*
+  GLint old_fbo;
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fbo);
+  
+  glBindFramebuffer(GL_FRAMEBUFFER, g_fb_light);
+  glUseProgram(0);
+  glBindVertexArrayOES(0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  
+  glBindFramebuffer(GL_FRAMEBUFFER, old_fbo);
+  assert(glGetError() == GL_NO_ERROR);
+  */
   glClearColor(0.65f, 0.65f, 0.65f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
+  
   glBindVertexArrayOES(_vertexArray);
   
-  // Render the object with GLKit
-  [self.effect prepareToDraw];
-  
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  
-  // Render the object again with ES2
   glUseProgram(_program);
   
+  glUniform1i(uniforms[UNIFORM_COLOR_MAP], 0);
+  glActiveTexture(GL_TEXTURE0);
+//  glBindTexture(GL_TEXTURE_2D, g_static_texture);
+  glBindTexture(GL_TEXTURE_2D, g_fb_light_texture);
+
   glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m);
   glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m);
   
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glDrawArrays(GL_TRIANGLES, 0, gMesh->_vertices.size());
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
+  assert(glGetError() == GL_NO_ERROR);
+  
 }
 
 #pragma mark -  OpenGL ES 2 shader compilation
 
 - (BOOL)loadShaders
 {
+  glGetError();
   GLuint vertShader, fragShader;
   NSString *vertShaderPathname, *fragShaderPathname;
   
@@ -277,7 +411,8 @@ GLfloat gCubeVertexData[216] =
   // This needs to be done prior to linking.
   glBindAttribLocation(_program, GLKVertexAttribPosition, "position");
   glBindAttribLocation(_program, GLKVertexAttribNormal, "normal");
-  
+    glBindAttribLocation(_program, GLKVertexAttribTexCoord0, "uv");
+    assert(glGetError() == GL_NO_ERROR);
   // Link program.
   if (![self linkProgram:_program]) {
     NSLog(@"Failed to link program: %d", _program);
@@ -301,6 +436,7 @@ GLfloat gCubeVertexData[216] =
   // Get uniform locations.
   uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(_program, "modelViewProjectionMatrix");
   uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation(_program, "normalMatrix");
+  uniforms[UNIFORM_COLOR_MAP] = glGetUniformLocation(_program, "colorMap");
   
   // Release vertex and fragment shaders.
   if (vertShader) {
@@ -311,7 +447,7 @@ GLfloat gCubeVertexData[216] =
     glDetachShader(_program, fragShader);
     glDeleteShader(fragShader);
   }
-  
+    assert(glGetError() == GL_NO_ERROR);
   return YES;
 }
 

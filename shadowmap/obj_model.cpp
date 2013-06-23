@@ -52,7 +52,7 @@ namespace lap {
   const string FACE = "f";
   
   typedef function<ObjModelPtr&(ObjModelPtr&, sregex_token_iterator args)> ParserFn;
-  typedef std::map<string, ParserFn> ParserMap;
+  typedef std::unordered_map<string, ParserFn> ParserMap;
   
   const std::regex ws_re("\\s+");
   const std::regex fv_re("/");
@@ -87,7 +87,7 @@ namespace lap {
     vec<int, N> v;
     for (auto i = 0; i < N; ++i) {
       if (iter != sregex_token_iterator()) {
-        v[i] = std::stoi(*iter);
+        if (iter->length() > 0) v[i] = std::stoi(*iter);
         ++iter;
       }
     }
@@ -110,8 +110,8 @@ namespace lap {
   }
   
   int3 parse_face_vertex(string fv_str) {
-    auto one_indexed = parse_veci<3>(sregex_token_iterator(fv_str.begin(),
-                                               fv_str.end(), fv_re, -1));
+    auto one_indexed = parse_veci<3>
+      (sregex_token_iterator(fv_str.begin(), fv_str.end(), fv_re, -1));
     int3 fv;
     for (auto i = 0; i < 3; ++i) fv[i] = std::max(one_indexed[i] - 1, 0);
     return fv;
@@ -161,7 +161,7 @@ namespace lap {
   
   ObjModelPtr obj_model(const std::string path) {
     
-    const std::map<string, ParserFn> parser_fns =
+    const ParserMap parser_fns =
     { { COMMENT, identity_parse },
       { POSITION, parse_position},
       { NORMAL, parse_normal },
@@ -172,16 +172,16 @@ namespace lap {
     if (!fs.is_open()) return ObjModelPtr();
     
     ObjModelPtr model = ObjModelPtr(new ObjModel());
+    model->_positions.reserve(512);
+    model->_uvs.reserve(512);
+    model->_normals.reserve(512);
+    model->_faces.reserve(1024);
     
     std::string line;
     while (getline(fs, line)) {
       if (!line.empty()) parse_line(parser_fns, model, line);
     }
     fs.close();
-    
-  //  const ObjModel& mr = *model;
-  //  std::cout << "Model:\n" << mr << std::endl;
-    
     return model;
   }
 }

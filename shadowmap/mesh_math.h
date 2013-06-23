@@ -148,7 +148,7 @@ namespace lap
     typedef vec<int,2> int2;
     typedef vec<int,1> int1;
     typedef vec<float,3> float3;
-    typedef vec<float,2> float2;
+    typedef vec<float,2> float2;    
     typedef vec<float,1> float1;
     /*
     
