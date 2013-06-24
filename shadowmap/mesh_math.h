@@ -43,6 +43,10 @@ namespace lap
       std::fill(v, v+N, T());
     }
     
+    vec(std::initializer_list<T> vs) {
+      std::copy(vs.begin(), vs.end(), v);
+    }
+    
     bool operator==(const vec<T, N>& rhs)const
     {
       return std::equal(v, v+N, rhs.v);
@@ -147,6 +151,7 @@ namespace lap
     typedef vec<int,3> int3;
     typedef vec<int,2> int2;
     typedef vec<int,1> int1;
+    typedef vec<float, 4> float4;
     typedef vec<float,3> float3;
     typedef vec<float,2> float2;    
     typedef vec<float,1> float1;

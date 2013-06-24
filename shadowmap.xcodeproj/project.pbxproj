@@ -98,7 +98,21 @@
 		65ABD3871775565F00044AA9 /* triangle_pnt.obj in Resources */ = {isa = PBXBuildFile; fileRef = 65ABD33D1775565F00044AA9 /* triangle_pnt.obj */; };
 		65ABD3881775565F00044AA9 /* triangle_pt.mtl in Resources */ = {isa = PBXBuildFile; fileRef = 65ABD33E1775565F00044AA9 /* triangle_pt.mtl */; };
 		65ABD3891775565F00044AA9 /* triangle_pt.obj in Resources */ = {isa = PBXBuildFile; fileRef = 65ABD33F1775565F00044AA9 /* triangle_pt.obj */; };
+		65ABD3CE17771FDE00044AA9 /* depth_render.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 65ABD3CD17771FDB00044AA9 /* depth_render.vsh */; };
+		65ABD3D01777213500044AA9 /* depth_render.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 65ABD3CF1777213500044AA9 /* depth_render.fsh */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		65ABD3C817771F2900044AA9 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		65ABD22517745E2E00044AA9 /* shadowmap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = shadowmap.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -199,6 +213,8 @@
 		65ABD33D1775565F00044AA9 /* triangle_pnt.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_pnt.obj; sourceTree = "<group>"; };
 		65ABD33E1775565F00044AA9 /* triangle_pt.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_pt.mtl; sourceTree = "<group>"; };
 		65ABD33F1775565F00044AA9 /* triangle_pt.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_pt.obj; sourceTree = "<group>"; };
+		65ABD3CD17771FDB00044AA9 /* depth_render.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = depth_render.vsh; path = Shaders/depth_render.vsh; sourceTree = "<group>"; };
+		65ABD3CF1777213500044AA9 /* depth_render.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = depth_render.fsh; path = shadowmap/Shaders/depth_render.fsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,6 +236,7 @@
 		65ABD21C17745E2E00044AA9 = {
 			isa = PBXGroup;
 			children = (
+				65ABD3CF1777213500044AA9 /* depth_render.fsh */,
 				65ABD23217745E2E00044AA9 /* shadowmap */,
 				65ABD22717745E2E00044AA9 /* Frameworks */,
 				65ABD22617745E2E00044AA9 /* Products */,
@@ -253,14 +270,15 @@
 				65ABD23B17745E2E00044AA9 /* SSAppDelegate.h */,
 				65ABD23C17745E2E00044AA9 /* SSAppDelegate.m */,
 				65ABD24417745E2E00044AA9 /* Shader.fsh */,
+				65ABD3CD17771FDB00044AA9 /* depth_render.vsh */,
 				65ABD24617745E2E00044AA9 /* Shader.vsh */,
 				65ABD24817745E2E00044AA9 /* SSViewController.h */,
 				65ABD24917745E2E00044AA9 /* SSViewController.mm */,
-				65ABD256177460ED00044AA9 /* obj_model.h */,
 				65ABD25917746B7500044AA9 /* mesh_math.h */,
 				65ABD257177461B300044AA9 /* obj_model.cpp */,
 				65ABD24B17745E2E00044AA9 /* SSViewController_iPhone.xib */,
 				65ABD24E17745E2E00044AA9 /* SSViewController_iPad.xib */,
+				65ABD256177460ED00044AA9 /* obj_model.h */,
 				65ABD23317745E2E00044AA9 /* Supporting Files */,
 			);
 			path = shadowmap;
@@ -372,6 +390,7 @@
 				65ABD22117745E2E00044AA9 /* Sources */,
 				65ABD22217745E2E00044AA9 /* Frameworks */,
 				65ABD22317745E2E00044AA9 /* Resources */,
+				65ABD3C817771F2900044AA9 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -415,7 +434,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				65ABD23717745E2E00044AA9 /* InfoPlist.strings in Resources */,
+				65ABD3CE17771FDE00044AA9 /* depth_render.vsh in Resources */,
 				65ABD23F17745E2E00044AA9 /* Default.png in Resources */,
+				65ABD3D01777213500044AA9 /* depth_render.fsh in Resources */,
 				65ABD24117745E2E00044AA9 /* Default@2x.png in Resources */,
 				65ABD24317745E2E00044AA9 /* Default-568h@2x.png in Resources */,
 				65ABD24517745E2E00044AA9 /* Shader.fsh in Resources */,
