@@ -214,7 +214,7 @@
 		65ABD33E1775565F00044AA9 /* triangle_pt.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_pt.mtl; sourceTree = "<group>"; };
 		65ABD33F1775565F00044AA9 /* triangle_pt.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_pt.obj; sourceTree = "<group>"; };
 		65ABD3CD17771FDB00044AA9 /* depth_render.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = depth_render.vsh; path = Shaders/depth_render.vsh; sourceTree = "<group>"; };
-		65ABD3CF1777213500044AA9 /* depth_render.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = depth_render.fsh; path = shadowmap/Shaders/depth_render.fsh; sourceTree = "<group>"; };
+		65ABD3CF1777213500044AA9 /* depth_render.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = depth_render.fsh; path = Shaders/depth_render.fsh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -236,7 +236,6 @@
 		65ABD21C17745E2E00044AA9 = {
 			isa = PBXGroup;
 			children = (
-				65ABD3CF1777213500044AA9 /* depth_render.fsh */,
 				65ABD23217745E2E00044AA9 /* shadowmap */,
 				65ABD22717745E2E00044AA9 /* Frameworks */,
 				65ABD22617745E2E00044AA9 /* Products */,
@@ -270,6 +269,7 @@
 				65ABD23B17745E2E00044AA9 /* SSAppDelegate.h */,
 				65ABD23C17745E2E00044AA9 /* SSAppDelegate.m */,
 				65ABD24417745E2E00044AA9 /* Shader.fsh */,
+				65ABD3CF1777213500044AA9 /* depth_render.fsh */,
 				65ABD3CD17771FDB00044AA9 /* depth_render.vsh */,
 				65ABD24617745E2E00044AA9 /* Shader.vsh */,
 				65ABD24817745E2E00044AA9 /* SSViewController.h */,
@@ -663,6 +663,7 @@
 				65ABD25517745E2E00044AA9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

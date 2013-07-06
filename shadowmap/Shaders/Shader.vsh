@@ -11,7 +11,12 @@ attribute vec3 normal;
 attribute vec2 uv;
 varying lowp vec2 uvVarying;
 varying lowp vec4 colorVarying;
+varying lowp vec4 world_pos_var;
+varying lowp vec4 eye_pos_var;
 
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projMatrix;
 uniform mat4 modelViewProjectionMatrix;
 uniform mat3 normalMatrix;
 
@@ -25,5 +30,9 @@ void main()
   
   colorVarying = diffuseColor * nDotVP;
   uvVarying = uv;
+
+  world_pos_var = modelMatrix * position;
+  eye_pos_var = viewMatrix * modelMatrix * position;
+//    gl_Position = projMatrix * viewMatrix * modelMatrix * position;
   gl_Position = modelViewProjectionMatrix * position;
 }

@@ -14,12 +14,16 @@
 // Uniform index.
 enum
 {
+  UNIFORM_PROGRAM_DIFFUSE_VIEW_MATRIX,
+  UNIFORM_PROGRAM_DIFFUSE_MODEL_MATRIX,
+  UNIFORM_PROGRAM_DIFFUSE_PROJ_MATRIX,
   UNIFORM_PROGRAM_DIFFUSE_MODELVIEWPROJECTION_MATRIX,
   UNIFORM_PROGRAM_DIFFUSE_NORMAL_MATRIX,
   UNIFORM_PROGRAM_DIFFUSE_COLOR_MAP,
   UNIFORM_PROGRAM_DIFFUSE_DEPTH_MAP,
   UNIFORM_PROGRAM_DIFFUSE_LIGHT_VIEW_PROJ,
   UNIFORM_PROGRAM_DIFFUSE_INV_CAMERA_VIEW_PROJ,
+  UNIFORM_PROGRAM_DIFFUSE_INV_PROJ,
   UNIFORM_PROGRAM_DIFFUSE_VIEWPORT,
   UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX,
   UNIFORM_PROGRAM_DEPTH_NORMAL_MATRIX,
@@ -145,11 +149,11 @@ void light_framebuffer() {
   
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  g_fb_light_width, g_fb_light_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-  glGenerateMipmap(GL_TEXTURE_2D);
+//  glGenerateMipmap(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 0);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT], 0);
   
@@ -167,16 +171,41 @@ void light_framebuffer() {
   
   glUseProgram(0);
   glBindVertexArrayOES(0);
-  glClearColor(1.0f, 0.5f, 0.0f, 0.0f);
+  glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   glClear(GL_COLOR_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, default_framebuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, default_renderbuffer);
   
   glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT]);
-  glGenerateMipmap(GL_TEXTURE_2D);
+  //glGenerateMipmap(GL_TEXTURE_2D);
   assert(glGetError() == GL_NO_ERROR);
 }
+  float frand() {
+    return (double)(random() % RAND_MAX) / (double)RAND_MAX;
+  }
+  
+  std::vector<uint8_t> circle_texture(int w)
+  {
+    std::vector<uint8_t> c(w * w);
+    int r = w / 2;
+    for (int j = 0; j < w; ++j) {
+      for (int i = 0; i < w; ++i) {
+        int x = i - r;
+        int y = j - r;
+        
+        float l = (sqrt(x*x + y*y) / r);
+        l +=  0.005 * frand();
+        l = std::min(1.0f, std::max(0.0f, l));
+//        l = 1.0 - powf(l, 1.0);
+         l = cos(3.0 * sqrt(x*x + y*y) / r);
+        l = std::min(1.0f, std::max(0.0f, l));
+        //c[j * w + i] = l > r*r ? 0 : 255;
+        c[j * w + i] = 255.0 * l;
+      }
+    }
+    return c;
+  }
 
 GLuint make_static_test_texture() {
   glGetError();
@@ -189,11 +218,13 @@ GLuint make_static_test_texture() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   
-//  uint8_t texture_data[] = { 0, 255, 0, 255, 0, 0, 255, 255, 255, 0, 0, 255, 255, 255, 0, 255 };
-  uint8_t texture_data[] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
-  
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, &texture_data[0]);
+//  uint8_t texture_data[] = { 255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255 };
+
+  auto w = 1024;
+  auto data3 = circle_texture(w);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, w, 0, GL_LUMINANCE,
+               GL_UNSIGNED_BYTE, &data3[0]);
+
   glGenerateMipmap(GL_TEXTURE_2D);
 
   assert(glGetError() == GL_NO_ERROR);
@@ -343,39 +374,47 @@ VAO make_vao(TriangleMeshPtr from_mesh, float3 scale, float4 rotation, float3 tr
 
 #pragma mark - GLKView and GLKViewController delegate methods
 
-GLKMatrix4 make_light_view_matrix() {
-    return GLKMatrix4MakeLookAt(10.0f, 8, 2.0,
+GLKMatrix4 make_light_view_matrix(float t) {
+    return GLKMatrix4MakeLookAt(10.0f, 5 + 4.5 * sin(t), 2.0 + 4.0 * cos(t),
                                 0.0f, 0.0f, 0.0f,
                                 0.0f, 1.0f, 0.0f);
 }
 
-GLKMatrix4 make_camera_view_matrix() {
-  return GLKMatrix4MakeLookAt(3.0f, 3, 8,
+GLKMatrix4 make_camera_view_matrix(float t) {
+//  return GLKMatrix4MakeTranslation(0.0, 0.0, -5.0 -  sin(t) * 2.0);
+  
+  //  return GLKMatrix4MakeLookAt(2.0f, 4, 9.5,
+//                              -1.0f, 0.0f, -1.0f,
+ //                             0.0f, 1.0f, 0.0f);
+  
+  return GLKMatrix4MakeLookAt(2.0f, 8.0, 12.0,
                               0.0f, 0.0f, 0.0f,
-                              0.0f, 1.0f, 0.0f);
-  //  return GLKMatrix4MakeLookAt(0.0f, 0, 8,
-  //                              0.0f, 0.0f, 0.0f,
-  //                              0.0f, 1.0f, 0.0f);
+                            0.0f, 1.0f, 0.0f);
 }
 
 GLKMatrix4 make_camera_projection_matrix(float aspect) {
-  return GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 1.0f, 1000.0f);
+  return GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 5.5f, 20.0f);
 }
 
 GLKMatrix4 make_light_projection_matrix(float aspect) {
-  return GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 1.0f, 1000.0f);
+  return GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 9.0f, 20.0f);
 }
-
 
 void upload_transformations(GLKMatrix4 projection,
                             GLKMatrix4 view,
                             GLKMatrix4 model,
+                            GLuint uniform_model,
+                            GLuint uniform_view,
+                            GLuint uniform_proj,
                             GLuint uniform_model_view_projection,
                             GLuint uniform_normal) {
   auto model_view = GLKMatrix4Multiply(view, model);
   auto normal = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(model_view), NULL);
   auto model_view_projection = GLKMatrix4Multiply(projection, model_view);
-  
+
+  glUniformMatrix4fv(uniform_model, 1, 0, model.m);
+  glUniformMatrix4fv(uniform_view, 1, 0, view.m);
+  glUniformMatrix4fv(uniform_proj, 1, 0, projection.m);
   glUniformMatrix4fv(uniform_model_view_projection, 1, 0, model_view_projection.m);
   glUniformMatrix3fv(uniform_normal, 1, 0, normal.m);
 }
@@ -385,18 +424,30 @@ void upload_transformations(GLKMatrix4 projection,
   _rotation += self.timeSinceLastUpdate * 0.5f;
 }
 
-void draw_vao(GLKMatrix4 projection, GLKMatrix4 view, float rotation,
+void draw_vao(GLKMatrix4 projection,
+              GLKMatrix4 view,
+              float rotation,
+              GLuint uniform_model,
+              GLuint uniform_view,
+              GLuint uniform_proj,
               GLuint uniform_model_view_projection,
               GLuint uniform_normal) {
   for (int i = 0; i < MESH_MAX; ++i) {
     auto & v = g_vao[i];
     if (v.name) {
           assert(glGetError() == GL_NO_ERROR);
-      auto model_matrix = GLKMatrix4MakeRotation(GLKMathDegreesToRadians(v.rotation[0]),
+      auto model_matrix = GLKMatrix4Identity;
+      model_matrix = GLKMatrix4RotateY(model_matrix, 0.4 * rotation);
+      model_matrix = GLKMatrix4Rotate(model_matrix, GLKMathDegreesToRadians(v.rotation[0]),
                                                              v.rotation[1], v.rotation[2], v.rotation[3]);
       model_matrix = GLKMatrix4Scale(model_matrix, v.scale[0], v.scale[1], v.scale[2]);
       model_matrix = GLKMatrix4Translate(model_matrix, v.translation[0], v.translation[1], v.translation[2]);
+      
+
       upload_transformations(projection, view, model_matrix,
+                             uniform_model,
+                             uniform_view,
+                             uniform_proj,
                              uniform_model_view_projection,
                              uniform_normal);
       glBindVertexArrayOES(g_vao[i].name);
@@ -413,7 +464,7 @@ void draw_light_view(GLuint program, float rotation) {
   glBindFramebuffer(GL_FRAMEBUFFER, g_fb_light);
   glViewport(0, 0, g_fb_light_width, g_fb_light_height);
   
-  glClearColor(1.0f, 0.2f, 1.0f, 0.0f);
+  glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   glUseProgram(program);
   glEnable(GL_DEPTH_TEST);
@@ -421,15 +472,29 @@ void draw_light_view(GLuint program, float rotation) {
   glUniform1i(uniforms[UNIFORM_PROGRAM_DEPTH_COLOR_MAP], 0);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_STATIC]);
-
   assert(glGetError() == GL_NO_ERROR);
   draw_vao(make_light_projection_matrix(fb_light_aspect()),
-           make_light_view_matrix(),
-           rotation,
+           make_light_view_matrix(rotation),
+           0.0,
+           0,
+           0,
+           0,
            uniforms[UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX],
            uniforms[UNIFORM_PROGRAM_DEPTH_NORMAL_MATRIX]);
   assert(glGetError() == GL_NO_ERROR);
+ 
+  
+//  export_framebuffer(g_fb_light_width, g_fb_light_height);
 }
+
+  void export_framebuffer(int w, int h)
+  {
+//    int type, format;
+    std::vector<uint8_t> pixels(w * h * 4);
+//    glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &type);
+//    glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
+  }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
@@ -452,33 +517,41 @@ void draw_light_view(GLuint program, float rotation) {
   glUniform4f(uniforms[UNIFORM_PROGRAM_DIFFUSE_VIEWPORT], old_viewport[0],
               old_viewport[1], old_viewport[2], old_viewport[3]);
   auto aspect = fabsf(self.view.bounds.size.width / self.view.bounds.size.height);
-  auto camera_view_proj = GLKMatrix4Multiply(make_camera_projection_matrix(aspect), make_camera_view_matrix());
-  glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_CAMERA_VIEW_PROJ], 1, 0, camera_view_proj.m);
+  auto proj = make_camera_projection_matrix(aspect);
+  auto camera_view_proj = GLKMatrix4Multiply(proj, make_camera_view_matrix(_rotation));
+  
+  bool invertible;
+  auto inv_camera_view_proj = GLKMatrix4Invert(camera_view_proj, &invertible);
+  auto inv_proj = GLKMatrix4Invert(proj, &invertible);
+  glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_CAMERA_VIEW_PROJ], 1, 0, inv_camera_view_proj.m);
+  glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_PROJ], 1, 0, inv_proj.m);
   assert(glGetError() == GL_NO_ERROR);
-  auto light_view_proj = GLKMatrix4Multiply(make_light_projection_matrix(fb_light_aspect()), make_light_view_matrix());
+  auto light_view_proj = GLKMatrix4Multiply(make_light_projection_matrix(fb_light_aspect()),
+                                            make_light_view_matrix(_rotation));
   glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_LIGHT_VIEW_PROJ], 1, 0, light_view_proj.m);
   
   glEnable(GL_DEPTH_TEST);
-  glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_COLOR_MAP], 0);
   glActiveTexture(GL_TEXTURE0);
+  glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_COLOR_MAP], 0);
   glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_STATIC]);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_DEPTH_MAP], 1);
+ // glGenerateMipmap(GL_TEXTURE_2D);
   glActiveTexture(GL_TEXTURE1);
+  glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_DEPTH_MAP], 1);
   glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT]);
 
   bool render_from_light = false;
 
-  draw_vao(make_camera_projection_matrix(aspect),
-           render_from_light ? make_light_view_matrix() : make_camera_view_matrix(),
+  draw_vao(render_from_light ? make_light_projection_matrix(aspect) : make_camera_projection_matrix(aspect),
+           render_from_light ? make_light_view_matrix(_rotation) : make_camera_view_matrix(_rotation),
            _rotation,
+           uniforms[UNIFORM_PROGRAM_DIFFUSE_MODEL_MATRIX],
+           uniforms[UNIFORM_PROGRAM_DIFFUSE_VIEW_MATRIX],
+           uniforms[UNIFORM_PROGRAM_DIFFUSE_PROJ_MATRIX],
            uniforms[UNIFORM_PROGRAM_DIFFUSE_MODELVIEWPROJECTION_MATRIX],
            uniforms[UNIFORM_PROGRAM_DIFFUSE_NORMAL_MATRIX]);
   
   glBindTexture(GL_TEXTURE_2D, 0);
-  
-  assert(glGetError() == GL_NO_ERROR);
-  
+  assert(glGetError() == GL_NO_ERROR);  
 }
 
 #pragma mark -  OpenGL ES 2 shader compilation
@@ -511,6 +584,12 @@ void draw_light_view(GLuint program, float rotation) {
     if (_programs[PROGRAM_SHADER]) { glDeleteProgram(_programs[PROGRAM_SHADER]); }
     return NO;
   }
+
+  uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_PROJ] = glGetUniformLocation(_programs[PROGRAM_SHADER], "inv_proj");
+
+  uniforms[UNIFORM_PROGRAM_DIFFUSE_MODEL_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "modelMatrix");
+  uniforms[UNIFORM_PROGRAM_DIFFUSE_VIEW_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "viewMatrix");
+  uniforms[UNIFORM_PROGRAM_DIFFUSE_PROJ_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "projMatrix");
 
   uniforms[UNIFORM_PROGRAM_DIFFUSE_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "modelViewProjectionMatrix");
   uniforms[UNIFORM_PROGRAM_DIFFUSE_NORMAL_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "normalMatrix");

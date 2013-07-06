@@ -8,208 +8,242 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "324"
-         endingLineNumber = "324"
-         landmarkName = "-setupGL"
-         landmarkType = "5">
+         startingLineNumber = "355"
+         endingLineNumber = "355">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394631881.032199"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "139"
-         endingLineNumber = "139"
-         landmarkName = "light_framebuffer()"
-         landmarkType = "7">
+         startingLineNumber = "143"
+         endingLineNumber = "143">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
+         timestampString = "394763848.585456"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "468"
-         endingLineNumber = "468"
-         landmarkName = "-glkView:drawInRect:"
-         landmarkType = "5">
+         startingLineNumber = "540"
+         endingLineNumber = "540">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
+         timestampString = "394763848.585456"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "522"
-         endingLineNumber = "522"
-         landmarkName = "-load_diffuse_shader"
-         landmarkType = "5">
+         startingLineNumber = "601"
+         endingLineNumber = "601">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394631881.032199"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "148"
-         endingLineNumber = "148"
-         landmarkName = "light_framebuffer()"
-         landmarkType = "7">
+         startingLineNumber = "152"
+         endingLineNumber = "152">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "442"
-         endingLineNumber = "442"
-         landmarkName = "-glkView:drawInRect:"
-         landmarkType = "5">
+         startingLineNumber = "507"
+         endingLineNumber = "507">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "414"
-         endingLineNumber = "414"
-         landmarkName = "draw_light_view()"
-         landmarkType = "7">
+         startingLineNumber = "465"
+         endingLineNumber = "465">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "312"
-         endingLineNumber = "312"
-         landmarkName = "-setupGL"
-         landmarkType = "5">
+         startingLineNumber = "343"
+         endingLineNumber = "343">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "371"
-         endingLineNumber = "371"
-         landmarkName = "upload_transformations()"
-         landmarkType = "7">
+         startingLineNumber = "404"
+         endingLineNumber = "404">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
+         timestampString = "394763848.585456"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "623"
+         endingLineNumber = "623">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763528.990164"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "464"
+         endingLineNumber = "464">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763528.990164"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "435"
+         endingLineNumber = "435">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763848.585456"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "599"
+         endingLineNumber = "599">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763848.585456"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "548"
+         endingLineNumber = "548">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763848.585456"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "543"
+         endingLineNumber = "543">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763848.585456"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
          startingLineNumber = "544"
-         endingLineNumber = "544"
-         landmarkName = "-load_depth_render_shader"
-         landmarkType = "5">
+         endingLineNumber = "544">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "413"
-         endingLineNumber = "413"
-         landmarkName = "draw_light_view()"
-         landmarkType = "7">
+         startingLineNumber = "526"
+         endingLineNumber = "526">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "shadowmap/SSViewController.mm"
+         timestampString = "394763528.990164"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "496"
+         endingLineNumber = "496">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393768913.852856"
+         timestampString = "394763528.990164"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "391"
-         endingLineNumber = "391"
-         landmarkName = "draw_vao()"
-         landmarkType = "7">
+         startingLineNumber = "197"
+         endingLineNumber = "197">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
+         timestampString = "394761002.420488"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "520"
-         endingLineNumber = "520"
-         landmarkName = "-load_diffuse_shader"
-         landmarkType = "5">
+         startingLineNumber = "185"
+         endingLineNumber = "185">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
+         timestampString = "394763462.750855"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "475"
-         endingLineNumber = "475"
-         landmarkName = "-glkView:drawInRect:"
-         landmarkType = "5">
+         startingLineNumber = "201"
+         endingLineNumber = "201">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
+         timestampString = "394763718.210587"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "471"
-         endingLineNumber = "471"
-         landmarkName = "-glkView:drawInRect:"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "No"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "shadowmap/SSViewController.mm"
-         timestampString = "393769827.678106"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "472"
-         endingLineNumber = "472"
-         landmarkName = "-glkView:drawInRect:"
-         landmarkType = "5">
+         startingLineNumber = "378"
+         endingLineNumber = "378">
       </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>
