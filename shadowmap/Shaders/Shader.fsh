@@ -11,6 +11,8 @@ varying lowp vec4 colorVarying;
 varying lowp vec2 uvVarying;
 varying lowp vec4 world_pos_var;
 varying lowp vec4 eye_pos_var;
+varying lowp vec3 normal_var;
+varying lowp vec4 light_pos_var;
 
 uniform sampler2D colorMap;
 uniform sampler2D depthMap;
@@ -64,9 +66,10 @@ void main()
   float depth_eye = 0.5 * frag_light_ndc.z + 0.5;
   float s = 1.0;
   if (depth_eye > depth_light + 0.01)  { s = 0.0;  }
-//  vec3 C = (frag_ndc.zzz) * vec3(1.0);
   vec4 light_color = s * color_sample;
   
-  gl_FragColor = light_color;// * vec4(1.0, 0.0, 0.0, 1.0) + 0.2 * vec4(1.0, 0.0, 0.0, 1.0);
-//  gl_FragColor = depth_sample;
+  vec3 l = normalize(light_pos_var - eye_pos_var).xyz;
+  float n_dot_l = max(0.0, dot(normalize(normal_var), l));
+
+  gl_FragColor = s * n_dot_l * vec4(1.0, 0.3, 0.2, 1.0);
 }
