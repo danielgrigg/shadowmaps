@@ -10,6 +10,7 @@ attribute vec4 position;
 attribute vec3 normal;
 attribute vec2 uv;
 varying lowp vec2 uvVarying;
+//varying lowp vec3 normal_var;
 varying lowp vec4 colorVarying;
 varying lowp vec4 world_pos_var;
 varying lowp vec4 eye_pos_var;

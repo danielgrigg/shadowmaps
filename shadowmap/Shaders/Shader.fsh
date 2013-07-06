@@ -5,7 +5,7 @@
 //  Created by Daniel Grigg on 21/06/13.
 //  Copyright (c) 2013 Sliplane Software. All rights reserved.
 //
-precision mediump float;
+precision highp float;
 
 varying lowp vec4 colorVarying;
 varying lowp vec2 uvVarying;
@@ -43,10 +43,8 @@ vec4 from_ndc(mat4 inv_transform,
   return inv_transform * clip_pos;
 }
 
-vec2 compress(vec2 v)
-{
-  return 0.5 * v + vec2(0.5);
-}
+vec2 compress(vec2 v) { return 0.5 * v + vec2(0.5); }
+vec3 compress(vec3 v) { return 0.5 * v + vec3(0.5); }
 
 void main()
 {
@@ -59,19 +57,16 @@ void main()
   vec4 frag_light_clip = light_view_proj * frag_world;
   vec3 frag_light_ndc = frag_light_clip.xyz / frag_light_clip.w;
   
-//  vec2 frag_uv = compress(frag_ndc.xy);
-  vec4 depth_sample = texture2D(colorMap, compress(frag_light_ndc.xy));
-
-//  gl_FragColor = vec4((0.5 * frag_light_ndc.xyz + vec3(0.5)) / 1.0, 1.0);
-
-//  float d = depth_sample.x;
-  gl_FragColor = vec4(depth_sample.xyz, 1.0);
- // gl_FragColor = vec4(frag_uv.xy, 0.0, 1.0);
-//  if (d > 0.99) d = 0.0;
-//  gl_FragColor = vec4(d,d,d, 1.0);
- 
-  //gl_FragColor = vec4(depth_sample.zzz, 1.0);
-  //gl_FragColor = vec4(gl_FragCoord.zzz, 1.0);
+  vec4 depth_sample = texture2D(depthMap, compress(frag_light_ndc.xy));
+  vec4 color_sample = texture2D(colorMap, compress(frag_light_ndc.xy));
   
-//  gl_FragColor = colorVarying;
+  float depth_light = depth_sample.x;
+  float depth_eye = 0.5 * frag_light_ndc.z + 0.5;
+  float s = 1.0;
+  if (depth_eye > depth_light + 0.01)  { s = 0.0;  }
+//  vec3 C = (frag_ndc.zzz) * vec3(1.0);
+  vec4 light_color = s * color_sample;
+  
+  gl_FragColor = light_color;// * vec4(1.0, 0.0, 0.0, 1.0) + 0.2 * vec4(1.0, 0.0, 0.0, 1.0);
+//  gl_FragColor = depth_sample;
 }

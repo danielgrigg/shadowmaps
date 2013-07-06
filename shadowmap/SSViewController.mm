@@ -131,7 +131,8 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
   enum
   {
     TEXTURE_STATIC,
-    TEXTURE_LIGHT,
+    TEXTURE_LIGHT_COLOR,
+    TEXTURE_LIGHT_DEPTH,
     TEXTURE_MAX
   };
   
@@ -140,6 +141,7 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
   GLuint g_fb_light;
   int g_fb_light_width = 512;
   int g_fb_light_height = 512;
+  
   
   void light_framebuffer() {
     
@@ -153,25 +155,36 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     glGenFramebuffers(1, &g_fb_light);
     glBindFramebuffer(GL_FRAMEBUFFER, g_fb_light);
     
-    // create the texture
-    glGenTextures(1, &g_textures[TEXTURE_LIGHT]);
-    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT]);
-    
+    glGenTextures(1, &g_textures[TEXTURE_LIGHT_COLOR]);
+    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_COLOR]);    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);    
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  g_fb_light_width, g_fb_light_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    //  glGenerateMipmap(GL_TEXTURE_2D);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_COLOR], 0);
+
+    glGenTextures(1, &g_textures[TEXTURE_LIGHT_DEPTH]);
+    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_DEPTH]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, g_fb_light_width, g_fb_light_height, 0,
+                 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_DEPTH], 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT], 0);
-    
-    GLuint depthRenderbuffer;
-    glGenRenderbuffers(1, &depthRenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, g_fb_light_width, g_fb_light_height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+    assert(glGetError() == GL_NO_ERROR);
+//    GLuint colorRenderBuffer;
+//    glGenRenderbuffers(1, &colorRenderBuffer);
+//    glBindRenderbuffer(GL_RENDERBUFFER, colorRenderBuffer);
+//    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, g_fb_light_width, g_fb_light_height);
+//    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderBuffer);
+//    GLuint depthRenderbuffer;
+ //   glGenRenderbuffers(1, &depthRenderbuffer);
+ //   glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+ //   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, g_fb_light_width, g_fb_light_height);
+ //   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
     
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
     if(status != GL_FRAMEBUFFER_COMPLETE) {
@@ -181,14 +194,10 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     
     glUseProgram(0);
     glBindVertexArrayOES(0);
-    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1.0, 0.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, default_framebuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, default_renderbuffer);
-    
-    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT]);
-    //glGenerateMipmap(GL_TEXTURE_2D);
     assert(glGetError() == GL_NO_ERROR);
   }
   float frand() {
@@ -382,7 +391,7 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
 #pragma mark - GLKView and GLKViewController delegate methods
   
   GLKMatrix4 make_light_view_matrix(float t) {
-    return GLKMatrix4MakeLookAt(10.0f, 5 + 4.5 * sin(t), 2.0 + 4.0 * cos(t),
+    return GLKMatrix4MakeLookAt(10.0f, 3, 0,// 5 + 4.5 * sin(t), 2.0 + 4.0 * cos(t),
                                 0.0f, 0.0f, 0.0f,
                                 0.0f, 1.0f, 0.0f);
   }
@@ -394,7 +403,7 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
   }
   
   GLKMatrix4 make_camera_projection_matrix(float aspect) {
-    return GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 5.5f, 20.0f);
+    return GLKMatrix4MakePerspective(GLKMathDegreesToRadians(38), aspect, 9.0f, 20.0f);
   }
   
   GLKMatrix4 make_light_projection_matrix(float aspect) {
@@ -470,13 +479,13 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     glUseProgram(program);
     glEnable(GL_DEPTH_TEST);
     
-    glUniform1i(uniforms[UNIFORM_PROGRAM_DEPTH_COLOR_MAP], 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_STATIC]);
+//    glUniform1i(uniforms[UNIFORM_PROGRAM_DEPTH_COLOR_MAP], 0);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_STATIC]);
     assert(glGetError() == GL_NO_ERROR);
     draw_vao(make_light_projection_matrix(fb_light_aspect()),
              make_light_view_matrix(t),
-             0.0,
+             t,
              0,
              0,
              0,
@@ -526,7 +535,7 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     // glGenerateMipmap(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_DEPTH_MAP], 1);
-    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT]);
+    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_DEPTH]);
     
     bool render_from_light = false;
     
