@@ -11,7 +11,6 @@
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-// Uniform index.
 enum
 {
   UNIFORM_PROGRAM_DIFFUSE_VIEW_MATRIX,
@@ -28,6 +27,7 @@ enum
   UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX,
   UNIFORM_PROGRAM_DEPTH_NORMAL_MATRIX,
   UNIFORM_PROGRAM_DEPTH_COLOR_MAP,
+  UNIFORM_PROGRAM_DIFFUSE_LIGHT_POSITION_WORLD,
   NUM_UNIFORMS
 };
 GLint uniforms[NUM_UNIFORMS];
@@ -48,7 +48,6 @@ void export_framebuffer(int w, int h)
   std::vector<uint8_t> pixels(w * h * 4);
   glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
 }
-
 
 struct PositionUVNormal {
   float3 _position;
@@ -73,17 +72,13 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
       for (int j = 0; j < 3; ++j) {
         auto& indices = model->_faces[i].vertex[j];
         
-        if (model->_uvs.empty()) {
-          //mesh->_vertices.push_back({ model->_positions[indices[0]], model->_normals[indices[2]]});
-        }
-        else {
+        if (!model->_uvs.empty()) {
           mesh->_vertices.push_back({
-            model->_positions[indices[0]],
-            model->_uvs[indices[1]],
-            model->_normals[indices[2]]});
+          model->_positions[indices[0]],
+          model->_uvs[indices[1]],
+          model->_normals[indices[2]]});
         }
       }
-      
     }
     return mesh;
   }
@@ -99,14 +94,14 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
   {
     NSBundle *bundle = [NSBundle mainBundle];
     NSString *path = [bundle pathForResource: name ofType: @"obj"];
-    if (path == nil) return TriangleMeshPtr();
-    //  NSLog(@"Main bundle path: %@", mainBundle);
-    //  NSLog(@"myFile path: %@", myFile);
+    if (path == nil) {
+      std::cerr << "FAIL loading " << name.UTF8String << "\n";
+      return TriangleMeshPtr();
+    }
     auto model = lap::obj_model(path.UTF8String);
     std::cout << "Mesh " << name.UTF8String << "\n";
     std::cout << "#positions " << model->_positions.size() << "\n";
     std::cout << "#faces " << model->_faces.size() << "\n";
-    
     return make_triangle_mesh(model);
   }
   
@@ -126,8 +121,6 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     }
   };
   
-  VAO g_vao[MESH_MAX];
-  
   enum
   {
     TEXTURE_STATIC,
@@ -136,12 +129,18 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     TEXTURE_MAX
   };
   
-  
+  enum
+  {
+    PROGRAM_DEPTH,
+    PROGRAM_SHADER,
+    PROGRAM_MAX
+  };
+    
   GLuint g_textures[TEXTURE_MAX];
   GLuint g_fb_light;
-  int g_fb_light_width = 512;
-  int g_fb_light_height = 512;
-  
+  int g_fb_light_width = 1024;
+  int g_fb_light_height = 1024;
+  VAO g_vao[MESH_MAX];
   
   void light_framebuffer() {
     
@@ -168,30 +167,17 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_DEPTH]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, g_fb_light_width, g_fb_light_height, 0,
                  GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_DEPTH], 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    assert(glGetError() == GL_NO_ERROR);
-//    GLuint colorRenderBuffer;
-//    glGenRenderbuffers(1, &colorRenderBuffer);
-//    glBindRenderbuffer(GL_RENDERBUFFER, colorRenderBuffer);
-//    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, g_fb_light_width, g_fb_light_height);
-//    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderBuffer);
-//    GLuint depthRenderbuffer;
- //   glGenRenderbuffers(1, &depthRenderbuffer);
- //   glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
- //   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, g_fb_light_width, g_fb_light_height);
- //   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
     
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER) ;
     if(status != GL_FRAMEBUFFER_COMPLETE) {
       NSLog(@"failed to make complete framebuffer object %x", status);
     }
-    assert(glGetError() == GL_NO_ERROR);
-    
     glUseProgram(0);
     glBindVertexArrayOES(0);
     glClearColor(1.0, 0.0, 1.0, 1.0);
@@ -200,6 +186,7 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     glBindRenderbuffer(GL_RENDERBUFFER, default_renderbuffer);
     assert(glGetError() == GL_NO_ERROR);
   }
+  
   float frand() {
     return (double)(random() % RAND_MAX) / (double)RAND_MAX;
   }
@@ -213,13 +200,10 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
         int x = i - r;
         int y = j - r;
         
-        float l = (sqrt(x*x + y*y) / r);
-        l +=  0.005 * frand();
+        float l = (sqrt(x*x + y*y) / r) + 0.005 * frand();
         l = std::min(1.0f, std::max(0.0f, l));
-        //        l = 1.0 - powf(l, 1.0);
         l = cos(3.0 * sqrt(x*x + y*y) / r);
         l = std::min(1.0f, std::max(0.0f, l));
-        //c[j * w + i] = l > r*r ? 0 : 255;
         c[j * w + i] = 255.0 * l;
       }
     }
@@ -237,24 +221,14 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    //  uint8_t texture_data[] = { 255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255 };
     auto w = 1024;
     auto data3 = circle_texture(w);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, w, 0, GL_LUMINANCE,
-                 GL_UNSIGNED_BYTE, &data3[0]);
-    
-    glGenerateMipmap(GL_TEXTURE_2D);
-    
+                 GL_UNSIGNED_BYTE, &data3[0]);    
+    glGenerateMipmap(GL_TEXTURE_2D);    
     assert(glGetError() == GL_NO_ERROR);
     return texture;
   }
-  
-  enum
-  {
-    PROGRAM_DEPTH,
-    PROGRAM_SHADER,
-    PROGRAM_MAX
-  };
   
   @interface SSViewController () {
     GLuint _programs[PROGRAM_MAX];
@@ -315,8 +289,6 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
       }
       self.context = nil;
     }
-    
-    // Dispose of any resources that can be recreated.
   }  
   
   VAO make_vao(TriangleMeshPtr from_mesh, float3 scale, float4 rotation, float3 translation) {
@@ -355,20 +327,22 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     [self load_depth_render_shader];
     [self load_diffuse_shader];
         
-    g_vao[MESH_PLANE] = make_vao(load_mesh(@"quad_pnt"),
-                                 {8.0, 8.0, 1.0},
-                                 {-90.0, 1.0, 0.0, 0.0},
-                                 {-.5, -.5, 0.0});
+    g_vao[MESH_PLANE] = make_vao(load_mesh(@"sphere"),
+                                 {4.0, 0.40, 4.0},
+                                 {0.0, 1.0, 0.0, 0.0},
+                                 {0, -2.0, 0.0});
     
-    g_vao[MESH_OBJECT] = make_vao(load_mesh(@"box_pnt"),
-                                  {0.25, 1.0, 0.8},
-                                  {0.0, 1.0, 0.0, 0.0},
-                                  {1.0, 1.0, 0.0});
+    g_vao[MESH_OBJECT] = make_vao(load_mesh(@"sphere"),
+                                  {0.4, 1.0, 2.6},
+                                  {20.0, 0.3, 1.0, 0.0},
+                                  {0.0, 1.0, 0.0});
     
     g_textures[TEXTURE_STATIC] = make_static_test_texture();
     
     light_framebuffer();
     
+    glEnable(GL_CULL_FACE);
+
     assert(glGetError() == GL_NO_ERROR);
   }
   
@@ -390,8 +364,18 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
   
 #pragma mark - GLKView and GLKViewController delegate methods
   
+  void light_position(float t, float pos[])
+  {
+    pos[0] = 10.0f;
+    pos[1] = 7.0f + 6 * sin(t);
+    pos[2] = 2.0 + 4.0 * cos(t);
+    pos[3] = 1.0f;
+  }
+  
   GLKMatrix4 make_light_view_matrix(float t) {
-    return GLKMatrix4MakeLookAt(10.0f, 3, 0,// 5 + 4.5 * sin(t), 2.0 + 4.0 * cos(t),
+    float pos[4];
+    light_position(t, pos);
+    return GLKMatrix4MakeLookAt(pos[0], pos[1], pos[2],
                                 0.0f, 0.0f, 0.0f,
                                 0.0f, 1.0f, 0.0f);
   }
@@ -416,17 +400,17 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
                               GLuint uniform_model,
                               GLuint uniform_view,
                               GLuint uniform_proj,
-                              GLuint uniform_model_view_projection,
+                              GLuint uniform_mvp,
                               GLuint uniform_normal) {
     auto model_view = GLKMatrix4Multiply(view, model);
     auto normal = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(model_view), NULL);
     auto model_view_projection = GLKMatrix4Multiply(projection, model_view);
     
-    glUniformMatrix4fv(uniform_model, 1, 0, model.m);
-    glUniformMatrix4fv(uniform_view, 1, 0, view.m);
-    glUniformMatrix4fv(uniform_proj, 1, 0, projection.m);
-    glUniformMatrix4fv(uniform_model_view_projection, 1, 0, model_view_projection.m);
-    glUniformMatrix3fv(uniform_normal, 1, 0, normal.m);
+    if (uniform_model != -1) glUniformMatrix4fv(uniform_model, 1, 0, model.m);
+    if (uniform_view != -1) glUniformMatrix4fv(uniform_view, 1, 0, view.m);
+    if (uniform_proj != -1) glUniformMatrix4fv(uniform_proj, 1, 0, projection.m);
+    if (uniform_mvp != -1) glUniformMatrix4fv(uniform_mvp, 1, 0, model_view_projection.m);
+    if (uniform_normal != -1) glUniformMatrix3fv(uniform_normal, 1, 0, normal.m);
   }
   
   - (void)update
@@ -452,8 +436,7 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
                                         v.rotation[1], v.rotation[2], v.rotation[3]);
         model_matrix = GLKMatrix4Scale(model_matrix, v.scale[0], v.scale[1], v.scale[2]);
         model_matrix = GLKMatrix4Translate(model_matrix, v.translation[0], v.translation[1], v.translation[2]);
-        
-        
+                
         upload_transformations(projection, view, model_matrix,
                                uniform_model,
                                uniform_view,
@@ -478,21 +461,11 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glUseProgram(program);
     glEnable(GL_DEPTH_TEST);
-    
-//    glUniform1i(uniforms[UNIFORM_PROGRAM_DEPTH_COLOR_MAP], 0);
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_STATIC]);
-    assert(glGetError() == GL_NO_ERROR);
+    glCullFace(GL_FRONT);
     draw_vao(make_light_projection_matrix(fb_light_aspect()),
-             make_light_view_matrix(t),
-             t,
-             0,
-             0,
-             0,
-             uniforms[UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX],
-             uniforms[UNIFORM_PROGRAM_DEPTH_NORMAL_MATRIX]);
-    assert(glGetError() == GL_NO_ERROR);    
-    //  export_framebuffer(g_fb_light_width, g_fb_light_height);
+             make_light_view_matrix(t), t, -1, -1, -1,
+             uniforms[UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX], -1);
+    glCullFace(GL_BACK);
   }
     
   - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
@@ -505,7 +478,6 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     draw_light_view(_programs[PROGRAM_DEPTH], _time);
     glBindFramebuffer(GL_FRAMEBUFFER, old_fbo);
     glViewport(old_viewport[0], old_viewport[1], old_viewport[2], old_viewport[3]);
-    assert(glGetError() == GL_NO_ERROR);
     
     glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -523,20 +495,20 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     auto inv_proj = GLKMatrix4Invert(proj, &invertible);
     glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_CAMERA_VIEW_PROJ], 1, 0, inv_camera_view_proj.m);
     glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_PROJ], 1, 0, inv_proj.m);
-    assert(glGetError() == GL_NO_ERROR);
+
     auto light_view_proj = GLKMatrix4Multiply(make_light_projection_matrix(fb_light_aspect()),
                                               make_light_view_matrix(_time));
     glUniformMatrix4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_LIGHT_VIEW_PROJ], 1, 0, light_view_proj.m);
-    
+    float pos[4]; light_position(_time, pos);
+    glUniform4fv(uniforms[UNIFORM_PROGRAM_DIFFUSE_LIGHT_POSITION_WORLD], 1, pos);
     glEnable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_COLOR_MAP], 0);
     glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_STATIC]);
-    // glGenerateMipmap(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(uniforms[UNIFORM_PROGRAM_DIFFUSE_DEPTH_MAP], 1);
     glBindTexture(GL_TEXTURE_2D, g_textures[TEXTURE_LIGHT_DEPTH]);
-    
+//    glGenerateMipmap(GL_TEXTURE_2D);
     bool render_from_light = false;
     
     draw_vao(render_from_light ? make_light_projection_matrix(aspect) : make_camera_projection_matrix(aspect),
@@ -547,7 +519,6 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
              uniforms[UNIFORM_PROGRAM_DIFFUSE_PROJ_MATRIX],
              uniforms[UNIFORM_PROGRAM_DIFFUSE_MODELVIEWPROJECTION_MATRIX],
              uniforms[UNIFORM_PROGRAM_DIFFUSE_NORMAL_MATRIX]);
-    
     glBindTexture(GL_TEXTURE_2D, 0);
     assert(glGetError() == GL_NO_ERROR);
   }
@@ -584,19 +555,17 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     }
     
     uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_PROJ] = glGetUniformLocation(_programs[PROGRAM_SHADER], "inv_proj");
-    
     uniforms[UNIFORM_PROGRAM_DIFFUSE_MODEL_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "modelMatrix");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_VIEW_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "viewMatrix");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_PROJ_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "projMatrix");
-    
     uniforms[UNIFORM_PROGRAM_DIFFUSE_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "modelViewProjectionMatrix");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_NORMAL_MATRIX] = glGetUniformLocation(_programs[PROGRAM_SHADER], "normalMatrix");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_COLOR_MAP] = glGetUniformLocation(_programs[PROGRAM_SHADER], "colorMap");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_DEPTH_MAP] = glGetUniformLocation(_programs[PROGRAM_SHADER], "depthMap");
-    
     uniforms[UNIFORM_PROGRAM_DIFFUSE_LIGHT_VIEW_PROJ] = glGetUniformLocation(_programs[PROGRAM_SHADER], "light_view_proj");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_INV_CAMERA_VIEW_PROJ] = glGetUniformLocation(_programs[PROGRAM_SHADER], "inv_camera_view_proj");
     uniforms[UNIFORM_PROGRAM_DIFFUSE_VIEWPORT] = glGetUniformLocation(_programs[PROGRAM_SHADER], "viewport");
+    uniforms[UNIFORM_PROGRAM_DIFFUSE_LIGHT_POSITION_WORLD] = glGetUniformLocation(_programs[PROGRAM_SHADER], "light_pos_world");    
     
     if (vertShader) {
       glDetachShader(_programs[PROGRAM_SHADER], vertShader);
@@ -638,9 +607,8 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
       return NO;
     }
     
-    uniforms[UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(_programs[PROGRAM_DEPTH], "modelViewProjectionMatrix");
-    uniforms[UNIFORM_PROGRAM_DEPTH_NORMAL_MATRIX] = glGetUniformLocation(_programs[PROGRAM_DEPTH], "normalMatrix");
-    uniforms[UNIFORM_PROGRAM_DEPTH_COLOR_MAP] = glGetUniformLocation(_programs[PROGRAM_DEPTH], "colorMap");
+    uniforms[UNIFORM_PROGRAM_DEPTH_MODELVIEWPROJECTION_MATRIX] =
+    glGetUniformLocation(_programs[PROGRAM_DEPTH], "modelViewProjectionMatrix");
     
     if (vertShader) {
       glDetachShader(_programs[PROGRAM_DEPTH], vertShader);
@@ -658,7 +626,8 @@ std::ostream& operator<<(std::ostream& os, const PositionUVNormal& rhs) {
     GLint status;
     const GLchar *source;
     
-    source = (GLchar *)[[NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:nil] UTF8String];
+    source = (GLchar *)[[NSString stringWithContentsOfFile:file
+                                                  encoding:NSUTF8StringEncoding error:nil] UTF8String];
     if (!source) {
       NSLog(@"Failed to load vertex shader");
       return NO;

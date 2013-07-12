@@ -64,12 +64,11 @@ void main()
   
   float depth_light = depth_sample.x;
   float depth_eye = 0.5 * frag_light_ndc.z + 0.5;
-  float s = 1.0;
-  if (depth_eye > depth_light + 0.01)  { s = 0.0;  }
-  vec4 light_color = s * color_sample;
-  
+  float s = step( depth_eye, depth_light);
   vec3 l = normalize(light_pos_var - eye_pos_var).xyz;
   float n_dot_l = max(0.0, dot(normalize(normal_var), l));
 
-  gl_FragColor = s * n_dot_l * vec4(1.0, 0.3, 0.2, 1.0);
+  vec3 C = max(0.05, s * n_dot_l) * vec3(1.0, 0.3, 0.2);  
+  gl_FragColor = vec4(pow(C, vec3(1.0/2.2)), 1.0);
+
 }

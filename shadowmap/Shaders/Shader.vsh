@@ -21,13 +21,12 @@ uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat4 modelViewProjectionMatrix;
 uniform mat3 normalMatrix;
+uniform vec4 light_pos_world;
 
 void main()
 {
   normal_var = normalMatrix * normal;
-  light_pos_var = viewMatrix * vec4(10.0, 3.0, 0.0, 1.0);
-//  vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
-  
+  light_pos_var = viewMatrix * light_pos_world; 
   uvVarying = uv;
   world_pos_var = modelMatrix * position;
   eye_pos_var = viewMatrix * modelMatrix * position;
